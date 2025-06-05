@@ -20,8 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="logs\" />
-    <Folder Include="scripts\" />
     <Folder Include="Resources\" />
   </ItemGroup>
 
