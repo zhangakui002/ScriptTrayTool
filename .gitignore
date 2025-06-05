@@ -1,0 +1,10 @@
+bin
+obj
+.idea
+.vs
+.user
+.sln.DotSettings.user
+*.sln.DotSettings.user
+litedb.db
+litedb-log.db
+publish

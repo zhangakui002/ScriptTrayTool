@@ -1,0 +1,138 @@
+<Window x:Class="ScriptTrayTool.Views.ScriptOutputWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:ScriptTrayTool.ViewModels"
+        xmlns:local="clr-namespace:ScriptTrayTool.Views"
+        Title="脚本输出监控"
+        Height="500"
+        Width="800"
+        MinHeight="300"
+        MinWidth="600"
+        WindowStartupLocation="CenterScreen">
+    
+    <Grid Background="{StaticResource BackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 标题栏和控制按钮 -->
+        <Grid Grid.Row="0" Margin="15,15,15,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Vertical">
+                <TextBlock Text="脚本输出监控" 
+                          FontSize="20" 
+                          FontWeight="Bold" 
+                          Foreground="{StaticResource TextPrimaryBrush}"/>
+                
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                    <TextBlock Text="当前脚本: " 
+                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <TextBlock Text="{Binding CurrentScript.Name, FallbackValue='无'}" 
+                              FontWeight="SemiBold"
+                              Foreground="{StaticResource TextPrimaryBrush}"/>
+                    
+                    <TextBlock Text=" | 运行时间: " 
+                              Foreground="{StaticResource TextSecondaryBrush}"
+                              Margin="15,0,0,0"/>
+                    <TextBlock Text="{Binding ElapsedTime}" 
+                              FontWeight="SemiBold"
+                              Foreground="{StaticResource PrimaryBrush}"/>
+                    
+                    <!-- 运行状态指示器 -->
+                    <Border Background="{StaticResource SuccessBrush}"
+                           CornerRadius="8"
+                           Padding="6,2"
+                           Margin="15,0,0,0"
+                           Visibility="{Binding IsRunning, Converter={x:Static local:BooleanToVisibilityConverter.Instance}}">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="8" Height="8" Fill="White" Margin="0,0,4,0">
+                                <Ellipse.RenderTransform>
+                                    <RotateTransform x:Name="RunningIndicator"/>
+                                </Ellipse.RenderTransform>
+                                <Ellipse.Triggers>
+                                    <EventTrigger RoutedEvent="Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard RepeatBehavior="Forever">
+                                                <DoubleAnimation Storyboard.TargetName="RunningIndicator"
+                                                               Storyboard.TargetProperty="Angle"
+                                                               From="0" To="360" Duration="0:0:1"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Ellipse.Triggers>
+                            </Ellipse>
+                            <TextBlock Text="运行中" 
+                                      Foreground="White" 
+                                      FontSize="11" 
+                                      FontWeight="Medium"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <ToggleButton Content="📌 自动滚动"
+                             IsChecked="{Binding AutoScroll}"
+                             Style="{StaticResource ModernToggleButtonStyle}"
+                             Margin="0,0,8,0"/>
+                <Button Content="📋 复制"
+                       Command="{Binding CopyOutputCommand}"
+                       Style="{StaticResource ModernButtonStyle}"
+                       Margin="0,0,8,0"/>
+                <Button Content="🗑️ 清空"
+                       Command="{Binding ClearOutputCommand}"
+                       Style="{StaticResource DangerButtonStyle}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- 输出内容区域 -->
+        <Border Grid.Row="1" 
+               Background="{StaticResource SurfaceBrush}"
+               BorderBrush="{StaticResource BorderBrush}"
+               BorderThickness="1"
+               CornerRadius="8"
+               Margin="15,0,15,10">
+            <ScrollViewer x:Name="OutputScrollViewer"
+                         VerticalScrollBarVisibility="Auto"
+                         HorizontalScrollBarVisibility="Auto"
+                         Padding="10">
+                <TextBlock Text="{Binding Output}"
+                          FontFamily="Consolas"
+                          FontSize="12"
+                          Foreground="{StaticResource TextPrimaryBrush}"
+                          TextWrapping="NoWrap"
+                          Background="Transparent"/>
+            </ScrollViewer>
+        </Border>
+
+        <!-- 状态栏 -->
+        <Border Grid.Row="2" 
+               Background="{StaticResource SurfaceBrush}"
+               BorderBrush="{StaticResource BorderBrush}"
+               BorderThickness="0,1,0,0"
+               Padding="15,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0">
+                    <Run Text="输出行数: " Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <Run Text="{Binding Output, Converter={x:Static local:LineCountConverter.Instance}}"
+                         Foreground="{StaticResource TextPrimaryBrush}"/>
+                </TextBlock>
+
+                <TextBlock Grid.Column="1" 
+                          Text="{Binding StartTime, StringFormat='开始时间: yyyy-MM-dd HH:mm:ss'}"
+                          Foreground="{StaticResource TextSecondaryBrush}"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

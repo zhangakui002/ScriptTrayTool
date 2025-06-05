@@ -1,0 +1,3 @@
+This is a placeholder for the application icon.
+You should replace this with an actual .ico file named app.ico
+The icon should be 16x16, 32x32, or 48x48 pixels for best results.

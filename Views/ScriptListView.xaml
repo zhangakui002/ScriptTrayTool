@@ -1,0 +1,225 @@
+<UserControl x:Class="ScriptTrayTool.Views.ScriptListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:ScriptTrayTool.Models"
+             xmlns:local="clr-namespace:ScriptTrayTool.Views">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 现代化标题和工具栏 -->
+        <Grid Grid.Row="0" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="脚本管理"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="📺 输出监控"
+                        Command="{Binding ShowOutputWindowCommand}"
+                        Style="{StaticResource InfoButtonStyle}"
+                        Margin="0,0,10,0"/>
+                <Button Content="➕ 新建脚本"
+                        Command="{Binding AddScriptCommand}"
+                        Style="{StaticResource SuccessButtonStyle}"
+                        Margin="0,0,10,0"/>
+                <Button Content="🔄 刷新"
+                        Command="{Binding RefreshCommand}"
+                        Style="{StaticResource ModernButtonStyle}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- 执行状态指示器 -->
+        <Border Grid.Row="1"
+               Background="{StaticResource WarningBrush}"
+               CornerRadius="8"
+               Margin="0,0,0,15"
+               Padding="15,10"
+               Visibility="{Binding IsAnyScriptRunning, Converter={x:Static local:BooleanToVisibilityConverter.Instance}}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 运行指示器 -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse Width="12" Height="12" Fill="White" Margin="0,0,8,0">
+                        <Ellipse.RenderTransform>
+                            <RotateTransform x:Name="StatusIndicator"/>
+                        </Ellipse.RenderTransform>
+                        <Ellipse.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="StatusIndicator"
+                                                       Storyboard.TargetProperty="Angle"
+                                                       From="0" To="360" Duration="0:0:1"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Ellipse.Triggers>
+                    </Ellipse>
+                    <TextBlock Text="正在执行脚本:"
+                              Foreground="White"
+                              FontWeight="SemiBold"
+                              VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- 脚本信息 -->
+                <TextBlock Grid.Column="1"
+                          Text="{Binding CurrentRunningScript.Name, FallbackValue='未知脚本'}"
+                          Foreground="White"
+                          FontWeight="Bold"
+                          FontSize="14"
+                          VerticalAlignment="Center"
+                          Margin="10,0"/>
+
+                <!-- 查看输出按钮 -->
+                <Button Grid.Column="2"
+                       Content="📺 查看输出"
+                       Command="{Binding ShowOutputWindowCommand}"
+                       Background="White"
+                       Foreground="{StaticResource WarningBrush}"
+                       BorderBrush="White"
+                       Padding="12,6"
+                       FontWeight="SemiBold"/>
+            </Grid>
+        </Border>
+
+        <!-- 现代化脚本列表 -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Scripts}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{StaticResource SurfaceBrush}"
+                                BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Margin="0,0,0,10"
+                                Effect="{StaticResource DropShadowEffect}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- 脚本信息区域 -->
+                                <StackPanel Grid.Column="0" Margin="15">
+                                    <!-- 脚本名称和类型 -->
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Name}"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+
+                                        <Border Grid.Column="1"
+                                                Background="{StaticResource PrimaryBrush}"
+                                                CornerRadius="12"
+                                                Padding="8,4">
+                                            <TextBlock Foreground="White"
+                                                       FontSize="12"
+                                                       FontWeight="Medium">
+                                                <TextBlock.Text>
+                                                    <Binding Path="ScriptType">
+                                                        <Binding.Converter>
+                                                            <local:ScriptTypeConverter/>
+                                                        </Binding.Converter>
+                                                    </Binding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- 最后执行时间 -->
+                                    <TextBlock Margin="0,0,0,8">
+                                        <Run Text="⏰ 最后执行：" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <Run Text="{Binding LastExecuted, StringFormat=yyyy-MM-dd HH:mm:ss}"
+                                             Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    </TextBlock>
+
+                                    <!-- 内容预览 -->
+                                    <TextBlock Text="{Binding Content, Converter={x:Static local:ContentPreviewConverter.Instance}}"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               FontFamily="Consolas"
+                                               FontSize="12"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxHeight="40"
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+
+                                <!-- 操作按钮区域 -->
+                                <StackPanel Grid.Column="1"
+                                            Orientation="Vertical"
+                                            Margin="15"
+                                            VerticalAlignment="Center">
+                                    <Button Width="100" Margin="0,0,0,8"
+                                            Command="{Binding DataContext.ExecuteScriptCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource SuccessButtonStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding DataContext.IsAnyScriptRunning, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
+                                                        <Setter Property="Content" Value="⏸️ 等待中"/>
+                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                        <Setter Property="Opacity" Value="0.6"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding DataContext.IsAnyScriptRunning, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="False">
+                                                        <Setter Property="Content" Value="▶️ 执行"/>
+                                                        <Setter Property="IsEnabled" Value="True"/>
+                                                        <Setter Property="Opacity" Value="1"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                    <Button Content="✏️ 编辑"
+                                            Command="{Binding DataContext.EditScriptCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource ModernButtonStyle}"
+                                            Width="100"
+                                            Margin="0,0,0,8"/>
+                                    <Button Content="🗑️ 删除"
+                                            Command="{Binding DataContext.DeleteScriptCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource DangerButtonStyle}"
+                                            Width="100"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+
+
+        <!-- 加载指示器 -->
+        <Grid Grid.Row="0" Grid.RowSpan="4"
+              Background="#80000000"
+              Visibility="{Binding IsLoading, Converter={x:Static local:BooleanToVisibilityConverter.Instance}}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
+                <TextBlock Text="正在处理..." Foreground="White" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>
